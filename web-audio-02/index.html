@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh_TW">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Web Audio API 音頻視覺化簡易播放器</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"
+    integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+
+</head>
+
+<body>
+  <H1 class="title">Web Audio 音頻視覺化簡易播放器</H1>
+  <h3 class="desc">一次播放一首歌，可選擇本機上的檔案，不需要正式上傳到伺服器，可對音樂檔案進行解析後根據音頻高低畫成波形圖及頻譜圖，透過不同的計算和排列，可以創造各種視覺效果<a href="../index.html">回主頁</a></h3>
+  <div id="player">
+    <form method="post" enctype="multipart/form-data">
+      <div>
+        <label for="open"><input type="file" name="file" accept="audio/*" id="open"></lable>
+      </div>
+    </form>
+    <audio src="" controls></audio>
+  </div>
+  <h2>原始數據呈現</h2>
+  <div class="basic-graph">
+    <!---波形圖--->
+    <canvas id="wave" width="128" height="256"></canvas>
+
+    <!---頻率圖--->
+    <canvas id="frequency" width="400" height="256"></canvas>
+  </div>
+  <h2>變化後數據呈現</h2>
+  <div class="advance-graph">
+    <canvas id="advWave" width="800" height="256"></canvas>
+    <canvas id="advFreq" width="800" height="256"></canvas>
+  </div>
+  <div class="footer"></div>
+</body>
+
+</html>
+<script src="vplayer.js"></script>

@@ -1,0 +1,115 @@
+* {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+#wavemap {
+  /*border: 1px solid gray;*/
+  display: block;
+}
+
+#audioList {
+  display: flex;
+  flex-wrap: wrap;
+  width: 1210px;
+  margin:auto;
+  justify-content: center;
+}
+
+#audioList li {
+  width: 300px;
+  height: 160px;
+  border: 1px solid #999;
+}
+
+#audioList li h3 {
+  font-family: "微軟正黑體", Arial, Helvetica, sans-serif;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  border-bottom: 1px solid #999;
+  padding: 5px 0;
+}
+
+#audioList li h3 .audio-btn {
+  vertical-align: middle;
+  width: 20px;
+  height: 20px;
+  border:0;
+  margin: 0 5px;
+  background: url("pause-button.png");
+  background-size: contain;
+  cursor:pointer;
+}
+
+#audioList li canvas {
+  display: block;
+  margin: auto;
+}
+
+#selector{
+  width:250px;
+  height:100px;
+  margin:auto;
+}
+
+label{
+  display:block;
+  width:64px;
+  height:64px;
+  background:url("open-folder.png");
+  position: relative;
+  margin:auto;
+  left:-100px;
+  top:0;
+
+}
+label::after{
+  content:"請開啟檔案來解析";
+  position: absolute;
+  right:-150px;
+  top:20px;
+  border:1px solid #ccc;
+  padding:5px 10px;
+  border-radius: 15px;
+  box-shadow: 1px 1px 3px #ccc;
+}
+label:hover{
+  top:-3px;
+  transition:left 0.5s ease ,top 0.5s ease;
+
+}
+#audio {
+  width:0px;
+  height:0px;
+}
+.title , .desc{
+  font-family: "微軟正黑體",Arial, Helvetica, sans-serif;
+  font-weight: bold;
+
+}
+.title{
+  font-size:26px;
+  margin:20px auto 10px auto;
+  text-align: center;
+}
+.desc{
+  font-size:16px;
+  width:500px;
+  margin:5px auto;
+  position: relative;
+}
+.desc a{
+  display:inline-block;
+  position: absolute;
+  right:0;
+  font-size:12px;
+  text-decoration: none;
+  bottom:-5px;
+  padding:3px 10px;
+  border:1px solid #ccc;
+  border-radius: 15px;
+  background:#eee;
+  box-shadow: 0 0 3px #ccc;
+}

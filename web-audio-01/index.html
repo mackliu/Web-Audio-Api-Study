@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Web-Audio-多檔解析並可簡易播放</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"
+    integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+
+</head>
+
+<body>
+  <H1 class="title">Web-Audio-多檔解析並可簡易播放</H1>
+  <h3 class="desc">可同時選擇多個本機的音樂檔案，對音樂檔案進行解析後根據音頻高低畫成波形圖，並有簡單的播放功能，同時選擇的檔案愈多，解析的速度愈慢<a href="../index.html">回主頁</a></h3>
+  <form method="post" enctype="mulipart/form-data" id="selector">
+    <div>
+      <label for="audio"><input type="file" name="audio[]" accept="audio/*" id="audio" multiple></label>
+    </div>
+  </form>
+  <div id="audioList">
+
+  </div>
+</body>
+
+</html>
+<script src="audio.js"></script>
