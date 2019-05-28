@@ -1,5 +1,7 @@
 # Web Audio API 學習紀錄
 
+[展示頁面DEMO](https://mackliu.github.io/Web-Audio-Api-Study/)
+
 ### 音頻視覺化
 * 由本地端直接讀出檔案
   * 用fileReader方式轉成dataurl
