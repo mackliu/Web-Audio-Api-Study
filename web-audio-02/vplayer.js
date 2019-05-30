@@ -12,16 +12,10 @@ function isSupport() {
 
 $("#open").on("change", function () {
   let files = $("#open").get(0).files[0];
-
-  let infoReader = new FileReader();
-  infoReader.onload = function (e) {
-    $("audio").get(0).setAttribute("src", e.target.result);
-    if(draw){
-      clearInterval(draw)
-    }
-
-  }
-  infoReader.readAsDataURL(files)
+      $("audio").get(0).setAttribute("src", URL.createObjectURL(files));
+      if(draw){
+        clearInterval(draw)
+      }
 })
 
 //全域變數
@@ -130,43 +124,32 @@ function advFreq(array) {
 //繪製波形的函式
 function drawWave(array) {
   cvw.clearRect(0, 0, 128, 256);
-  array.forEach(function (val, index) {
-    cvw.fillStyle = gradientw;
-    let y, h;
-    if (val - 128 > 0) {
-      h = ((val - 128) / 128) * (cvwHeight / 2);
-      y = (cvwHeight / 2) - h;
-    } else {
-      y = (cvwHeight / 2);
-      h = Math.abs(val - 128) / 128 * (cvwHeight / 2);
-    }
-    cvw.fillRect(index, y, 1, h);
+  cvw.fillStyle = gradientw;
+  cvw.beginPath();
+  cvw.moveTo(0,cvwHeight/2);
+  array.forEach(function(val, index) {
+    cvw.lineTo(index,val)
   })
+  cvw.lineTo(800,cvwHeight/2);
+  cvw.fill();
 }
-
 
 function advWave(array) {
   advcvw.clearRect(0, 0, 800, 256);
   waveQueue = appendBuffer(waveQueue, array)
   if (waveQueue.length > 896) {
-    waveQueue = waveQueue.filter(function (val, index) {
-      return index > 127;
-    })
+      waveQueue=waveQueue.slice(128,waveQueue.length+1);
   }
+  advcvw.fillStyle = gradientw;
+  advcvw.beginPath();
+  advcvw.moveTo(0,cvwHeight/2)
   waveQueue.forEach(function (val, index) {
-    if (index < 800) {
-      advcvw.fillStyle = gradientw;
-      let y, h;
-      if (val - 128 > 0) {
-        h = ((val - 128) / 128) * (cvwHeight / 2);
-        y = (cvwHeight / 2) - h;
-      } else {
-        y = (cvwHeight / 2);
-        h = Math.abs(val - 128) / 128 * (cvwHeight / 2);
-      }
-      advcvw.fillRect(index, y, 1, h);
+    if(index<800){
+      advcvw.lineTo(index,val)
     }
   })
+  advcvw.lineTo(800,cvwHeight/2)
+  advcvw.fill();
 }
 
 //連接兩個Uni8Array
