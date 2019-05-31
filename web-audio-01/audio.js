@@ -5,47 +5,40 @@ $("#audio").on("change", function () {
     $("#audioList").append(function () {
       let listItem = document.createElement("li")
       let listH3 = document.createElement("h3")
-      let tmp=file.name.split(".");
-      let filename="";
-      tmp.forEach(function(val,index){
-            if(index<tmp.length-1){
-              filename=filename+val;
-            }
-          })
-          filename=filename.substr(0,15)
+      let tmp = file.name.split(".");
+      let filename = "";
+      tmp.forEach(function (val, index) {
+        if (index < tmp.length - 1) {
+          filename = filename + val;
+        }
+      })
+      filename = filename.substr(0, 15)
       let listTitle = document.createTextNode(filename)
       let listAudio = document.createElement("audio")
+      listAudio.setAttribute("src", URL.createObjectURL(file));
       let listPlayBtn = document.createElement("button")
-          listPlayBtn.setAttribute("class", "audio-btn")
-          listH3.appendChild(listTitle)
-          listH3.appendChild(listPlayBtn)
-          listH3.appendChild(listAudio)
-          listItem.appendChild(listH3)
-      let infoReader = new FileReader();
-          infoReader.onload = function (e) {
-          listAudio.setAttribute("src", e.target.result);
-        let bufferReader = new FileReader();
-              bufferReader.onload = function (eb) {
-                audioInfo(eb.target.result, listItem)
-              }
-            bufferReader.readAsArrayBuffer(file)
-          }
-      infoReader.readAsDataURL(file)
-
+      listPlayBtn.setAttribute("class", "audio-btn")
+      listH3.appendChild(listTitle)
+      listH3.appendChild(listPlayBtn)
+      listH3.appendChild(listAudio)
+      listItem.appendChild(listH3)
+      let bufferReader = new FileReader();
+      bufferReader.onload = function (e) {
+        audioInfo(e.target.result, listItem)
+      }
+      bufferReader.readAsArrayBuffer(file)
       return listItem;
     })
   })
 
   $("h3 .audio-btn").on("click", function () {
-    
     if ($(this).next("audio").get(0).paused == true) {
-
       $(this).css({
         "background": "url('play-button.png')",
         "background-size": "contain"
       })
-    
-      $(this).next("audio").get(0).volume=0.2;
+
+      $(this).next("audio").get(0).volume = 0.2;
       $(this).next("audio").get(0).play();
 
     } else {
@@ -67,6 +60,7 @@ $("#audio").on("change", function () {
 
 //audioContext 相容性判斷
 isSupport()
+
 function isSupport() {
   try {
     window.AudioContext = window.AudioContext || webkitAudioContext;
