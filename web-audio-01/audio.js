@@ -1,44 +1,41 @@
-let start=0;
-let end=Array();
-let all=0;
-let decodeStart=Array();
-let decodeEnd=0;
-let lines=Array();
+let start = 0;
+let end = Array();
+let all = 0;
+let decodeStart = Array();
+let decodeEnd = 0;
+let lines = Array();
 
-let ca,cache,cal,img;
+let ca, cache, cal;
 
-for(let i=0;i<256;i++){
-  let ca=document.createElement("canvas")
-      ca.width=1;
-      ca.height=i>0?i:1;
-  let cache=ca.getContext("2d")
-  if(i>5){
-    cal = cache.createLinearGradient(0.5,0,0.5,i)
+//建立一個各種漸層線條的快取陣列
+for (let i = 0; i < 256; i++) {
+  let ca = document.createElement("canvas")
+  ca.width = 1;
+  ca.height = i > 0 ? i : 1;
+  let cache = ca.getContext("2d")
+  if (i > 5) {
+    cal = cache.createLinearGradient(0.5, 0, 0.5, i)
     cal.addColorStop(1, '#f00');
     cal.addColorStop(0.85, '#ff0');
     cal.addColorStop(0.5, '#0f0');
     cal.addColorStop(0.15, '#ff0');
     cal.addColorStop(0, '#f00');
-  }else{
-    cal="#00ff00";
+  } else {
+    cal = "#00ff00";
   }
   cache.strokeStyle = cal;
   cache.beginPath();
   cache.moveTo(0.5, 0)
-  cache.lineTo(0.5,i)
+  cache.lineTo(0.5, i)
   cache.closePath();
   cache.stroke();
-  //img=cache.getImageData(0,0,1,i);
   lines.push(ca)
 }
-//console.log(lines)
-
-
 
 $("#audio").on("change", function () {
-  start=Date.now();
+  start = Date.now();
   let files = $("#audio").get(0).files;
-  all=files.length;
+  all = files.length;
   $("#audioList").html("");
   $.each(files, function (idx, file) {
     $("#audioList").append(function () {
@@ -61,6 +58,9 @@ $("#audio").on("change", function () {
       listH3.appendChild(listPlayBtn)
       listH3.appendChild(listAudio)
       listItem.appendChild(listH3)
+      let waitbar = document.createElement("div")
+      waitbar.setAttribute("class", "wait")
+      listItem.appendChild(waitbar)
       let bufferReader = new FileReader();
       bufferReader.onload = function (e) {
         audioInfo(e.target.result, listItem)
@@ -115,7 +115,7 @@ function audioInfo(file, dom) {
   let context = new AudioContext();
   decodeStart.push(Date.now())
   context.decodeAudioData(file, function (buffer) {
-    decodeEnd=Date.now();
+    decodeEnd = Date.now();
     let source = context.createBufferSource();
     source.buffer = buffer;
     let duration = buffer.duration
@@ -133,7 +133,7 @@ function audioInfo(file, dom) {
     getBufferSource(info)
   })
 }
-let draws=Array(); //計算繪圖時間的陣列
+let draws = Array(); //計算繪圖時間的陣列
 
 
 //轉換檔案為buffer並處理音源內容
@@ -166,9 +166,9 @@ function getBufferSource(info) {
   canvas.setAttribute("height", "128")
   $(info.dom).append(canvas)
   let ctx = canvas.getContext("2d")
-  let drawsData=Array();
+  let drawsData = Array();
   let data = new Uint8Array(analyser.frequencyBinCount)
-    processor.onaudioprocess = function (e) {
+  processor.onaudioprocess = function (e) {
     analyser.getByteTimeDomainData(data);
     let height = waveDistance(data);
     frequency++
@@ -176,12 +176,9 @@ function getBufferSource(info) {
       time: context.currentTime,
       height: height
     });
-    //let canvash = 128;
-    //let canvasw = 256;
 
     if (frequency % gap == 0) {
-      drawsData.push([pos,height])
-      //drawAudio(pos, canvash, height, ctx)
+      drawsData.push([pos, height])
       pos++;
     }
   }
@@ -194,25 +191,24 @@ function getBufferSource(info) {
     processor.disconnect();
     source.disconnect();
     analyser.disconnect();
-    drawAudio(drawsData,128,ctx)
+    $(info.dom).children(".wait").hide();
+    drawAudio(drawsData, 128, ctx)
     end.push(Date.now())
-    if(end.length>=all){
-      console.log("full time : "+(Math.max.apply(Math,end)-start));
-      console.log("decode time : "+(decodeEnd-Math.min.apply(Math,decodeStart)))
-      console.log("draw timw : "+(Math.max.apply(Math,end)-Math.max.apply(Math,draws)))
+    if (end.length >= all) {
+      console.log("full time : " + (Math.max.apply(Math, end) - start));
+      console.log("decode time : " + (decodeEnd - Math.min.apply(Math, decodeStart)))
+      console.log("draw timw : " + (Math.max.apply(Math, end) - Math.max.apply(Math, draws)))
     }
-    //let chks = chkSlince(dataSet)
+    //let chks = chkSlince(dataSet) //計算空白
   }
 }
 
 //執行畫圖
-function drawAudio(drawsdata, canvash,  canvas) {
-  drawsdata.forEach(function(val,idx){
+function drawAudio(drawsdata, canvash, canvas) {
+  drawsdata.forEach(function (val, idx) {
     let y = (canvash / 2) - Math.ceil((val[1] / 2));
-    canvas.drawImage(lines[val[1]],val[0],y)
-    
+    canvas.drawImage(lines[val[1]], val[0], y)
   })
-
 }
 
 //設置緩衝切片的大小，每次要送進處理器處理的資料大小，關係到圖象要畫的寬度
@@ -281,5 +277,5 @@ function chkSlince(obj) {
 function waveDistance(array) {
   let max = Math.max.apply(null, array);
   let min = Math.min.apply(null, array);
-  return (max - min) > 0 ? Math.floor((max - min)/2) : 1;
+  return (max - min) > 0 ? Math.floor((max - min) / 2) : 1;
 }
