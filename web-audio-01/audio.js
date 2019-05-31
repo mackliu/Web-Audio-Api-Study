@@ -1,5 +1,44 @@
+let start=0;
+let end=Array();
+let all=0;
+let decodeStart=Array();
+let decodeEnd=0;
+let lines=Array();
+
+let ca,cache,cal,img;
+
+for(let i=0;i<256;i++){
+  let ca=document.createElement("canvas")
+      ca.width=1;
+      ca.height=i>0?i:1;
+  let cache=ca.getContext("2d")
+  if(i>5){
+    cal = cache.createLinearGradient(0.5,0,0.5,i)
+    cal.addColorStop(1, '#f00');
+    cal.addColorStop(0.85, '#ff0');
+    cal.addColorStop(0.5, '#0f0');
+    cal.addColorStop(0.15, '#ff0');
+    cal.addColorStop(0, '#f00');
+  }else{
+    cal="#00ff00";
+  }
+  cache.strokeStyle = cal;
+  cache.beginPath();
+  cache.moveTo(0.5, 0)
+  cache.lineTo(0.5,i)
+  cache.closePath();
+  cache.stroke();
+  //img=cache.getImageData(0,0,1,i);
+  lines.push(ca)
+}
+//console.log(lines)
+
+
+
 $("#audio").on("change", function () {
+  start=Date.now();
   let files = $("#audio").get(0).files;
+  all=files.length;
   $("#audioList").html("");
   $.each(files, function (idx, file) {
     $("#audioList").append(function () {
@@ -74,7 +113,9 @@ function isSupport() {
 function audioInfo(file, dom) {
   //建立一個AudioContext物件
   let context = new AudioContext();
+  decodeStart.push(Date.now())
   context.decodeAudioData(file, function (buffer) {
+    decodeEnd=Date.now();
     let source = context.createBufferSource();
     source.buffer = buffer;
     let duration = buffer.duration
@@ -92,9 +133,12 @@ function audioInfo(file, dom) {
     getBufferSource(info)
   })
 }
+let draws=Array(); //計算繪圖時間的陣列
+
 
 //轉換檔案為buffer並處理音源內容
 function getBufferSource(info) {
+  draws.push(Date.now());
   let context = new OfflineAudioContext(info.channels, info.audioBuffer, info.sampleRate);
   let fft = setFftSize(info.duration)
   let processor = context.createScriptProcessor(fft, 1, 1)
@@ -122,8 +166,9 @@ function getBufferSource(info) {
   canvas.setAttribute("height", "128")
   $(info.dom).append(canvas)
   let ctx = canvas.getContext("2d")
-  processor.onaudioprocess = function (e) {
-    let data = new Uint8Array(analyser.frequencyBinCount)
+  let drawsData=Array();
+  let data = new Uint8Array(analyser.frequencyBinCount)
+    processor.onaudioprocess = function (e) {
     analyser.getByteTimeDomainData(data);
     let height = waveDistance(data);
     frequency++
@@ -131,11 +176,12 @@ function getBufferSource(info) {
       time: context.currentTime,
       height: height
     });
-    let canvash = 128;
-    let canvasw = 256;
-    if (frequency % gap == 0) {
+    //let canvash = 128;
+    //let canvasw = 256;
 
-      drawAudio(pos, canvash, canvasw, height, ctx)
+    if (frequency % gap == 0) {
+      drawsData.push([pos,height])
+      //drawAudio(pos, canvash, height, ctx)
       pos++;
     }
   }
@@ -148,26 +194,25 @@ function getBufferSource(info) {
     processor.disconnect();
     source.disconnect();
     analyser.disconnect();
-    let chks = chkSlince(dataSet)
+    drawAudio(drawsData,128,ctx)
+    end.push(Date.now())
+    if(end.length>=all){
+      console.log("full time : "+(Math.max.apply(Math,end)-start));
+      console.log("decode time : "+(decodeEnd-Math.min.apply(Math,decodeStart)))
+      console.log("draw timw : "+(Math.max.apply(Math,end)-Math.max.apply(Math,draws)))
+    }
+    //let chks = chkSlince(dataSet)
   }
 }
 
 //執行畫圖
-function drawAudio(pos, canvash, canvasw, height, canvas) {
-  let y = (canvash / 2) - (height / 2);
-  let color = canvas.createLinearGradient(pos, y, pos, y + height)
-  color.addColorStop(1, '#f00');
-  color.addColorStop(0.85, '#ff0');
-  color.addColorStop(0.5, '#0f0');
-  color.addColorStop(0.15, '#ff0');
-  color.addColorStop(0, '#f00');
-  canvas.strokeStyle = color;
+function drawAudio(drawsdata, canvash,  canvas) {
+  drawsdata.forEach(function(val,idx){
+    let y = (canvash / 2) - Math.ceil((val[1] / 2));
+    canvas.drawImage(lines[val[1]],val[0],y)
+    
+  })
 
-  canvas.beginPath();
-  canvas.moveTo(pos - 0.5, y)
-  canvas.lineTo(pos - 0.5, y + height)
-  canvas.closePath();
-  canvas.stroke();
 }
 
 //設置緩衝切片的大小，每次要送進處理器處理的資料大小，關係到圖象要畫的寬度
@@ -236,5 +281,5 @@ function chkSlince(obj) {
 function waveDistance(array) {
   let max = Math.max.apply(null, array);
   let min = Math.min.apply(null, array);
-  return (max - min) > 0 ? (max - min) / 2 : 1;
+  return (max - min) > 0 ? Math.floor((max - min)/2) : 1;
 }
