@@ -1,13 +1,6 @@
-let start = 0;
-let end = Array();
-let all = 0;
-let decodeStart = Array();
-let decodeEnd = 0;
-let lines = Array();
-
-let ca, cache, cal;
-
 //建立一個各種漸層線條的快取陣列
+let lines = Array();
+let ca, cache, cal;
 for (let i = 0; i < 256; i++) {
   let ca = document.createElement("canvas")
   ca.width = 1;
@@ -32,11 +25,35 @@ for (let i = 0; i < 256; i++) {
   lines.push(ca)
 }
 
+//audioContext 相容性判斷
+isSupport()
+function isSupport() {
+  try {
+    window.AudioContext = window.AudioContext || webkitAudioContext;
+    window.OfflineAudioContext = window.OfflineAudioContext || window.webkitOfflineAudioContext
+  } catch {
+    document.write("你的瀏灠器可能不支援新的網頁音源技術，建議使用Chrome或是firefox來瀏灠")
+  }
+}
+
 $("#audio").on("change", function () {
   start = Date.now();
   let files = $("#audio").get(0).files;
-  all = files.length;
-  $("#audioList").html("");
+  let fileSize=0;
+  //判斷檔案總容量，如果超過100mb則不處理並跳出提示
+  $.each(files,function(idx,file){
+    fileSize=fileSize+Math.ceil(file.size/1048576)
+  })
+  if(fileSize>=100){
+    alert("檔案容量太大，請減少檔案數或選擇容量小於100mb的檔案")
+  }else{
+    $("#audioList").html("");
+    addItems(files)
+  }
+})
+
+//建立畫面元件及檔案解析需要的資訊
+function addItems(files){
   $.each(files, function (idx, file) {
     $("#audioList").append(function () {
       let listItem = document.createElement("li")
@@ -70,19 +87,26 @@ $("#audio").on("change", function () {
     })
   })
 
+//建立各個檔案的按鈕監聽事件
   $("h3 .audio-btn").on("click", function () {
     if ($(this).next("audio").get(0).paused == true) {
+      $("audio").each(function(){
+        $(this).get(0).pause()
+        $(this).prev(".audio-btn").css({
+          "background": "url('pause-button.png')",
+          "background-size": "contain"
+        });
+      })
       $(this).css({
         "background": "url('play-button.png')",
         "background-size": "contain"
       })
-
-      $(this).next("audio").get(0).volume = 0.2;
+      $(this).next("audio").get(0).volume = 0.3;
       $(this).next("audio").get(0).play();
 
     } else {
       $(this).next("audio").get(0).pause();
-      $(".audio-btn").css({
+      $(this).css({
         "background": "url('pause-button.png')",
         "background-size": "contain"
       });
@@ -95,27 +119,14 @@ $("#audio").on("change", function () {
       "background-size": "contain"
     });
   })
-})
 
-//audioContext 相容性判斷
-isSupport()
-
-function isSupport() {
-  try {
-    window.AudioContext = window.AudioContext || webkitAudioContext;
-    window.OfflineAudioContext = window.OfflineAudioContext || window.webkitOfflineAudioContext
-  } catch {
-    document.write("你的瀏灠器可能不支援新的網頁音源技術，建議使用Chrome或是firefox來瀏灠")
-  }
 }
 
 //取得音源的資訊
 function audioInfo(file, dom) {
   //建立一個AudioContext物件
   let context = new AudioContext();
-  decodeStart.push(Date.now())
   context.decodeAudioData(file, function (buffer) {
-    decodeEnd = Date.now();
     let source = context.createBufferSource();
     source.buffer = buffer;
     let duration = buffer.duration
@@ -131,14 +142,16 @@ function audioInfo(file, dom) {
       buffer: buffer
     }
     getBufferSource(info)
+    buffer=null
+    file=null
+    context=null
   })
 }
-let draws = Array(); //計算繪圖時間的陣列
+
 
 
 //轉換檔案為buffer並處理音源內容
 function getBufferSource(info) {
-  draws.push(Date.now());
   let context = new OfflineAudioContext(info.channels, info.audioBuffer, info.sampleRate);
   let fft = setFftSize(info.duration)
   let processor = context.createScriptProcessor(fft, 1, 1)
@@ -188,17 +201,21 @@ function getBufferSource(info) {
 
   //解析完成時，解除連結，同時分析檔案中的空白
   context.oncomplete = function () {
+    data=null;
     processor.disconnect();
     source.disconnect();
     analyser.disconnect();
+    processor.onaudioprocess=null;
+    context.startRendering=null;
+    source.buffer=null;
     $(info.dom).children(".wait").hide();
     drawAudio(drawsData, 128, ctx)
-    end.push(Date.now())
-    if (end.length >= all) {
-      console.log("full time : " + (Math.max.apply(Math, end) - start));
-      console.log("decode time : " + (decodeEnd - Math.min.apply(Math, decodeStart)))
-      console.log("draw timw : " + (Math.max.apply(Math, end) - Math.max.apply(Math, draws)))
-    }
+    info=null
+    processor=null;
+    source.buffer=null;
+    source=null;
+    analyser=null;
+    context=null;
     //let chks = chkSlince(dataSet) //計算空白
   }
 }
@@ -211,7 +228,8 @@ function drawAudio(drawsdata, canvash, canvas) {
   })
 }
 
-//設置緩衝切片的大小，每次要送進處理器處理的資料大小，關係到圖象要畫的寬度
+//設置緩衝切片的大小，每次要送進處理器處理的資料大小，
+//關係到圖象要畫的寬度及解析的效能，必須是2的幂次方並且不能超過2的15次方
 function setFftSize(d) {
   let div = 0;
   if (d < 10) {
@@ -269,7 +287,7 @@ function chkSlince(obj) {
       break;
     }
   }
-
+  obj=null;
   return res;
 }
 
@@ -277,5 +295,6 @@ function chkSlince(obj) {
 function waveDistance(array) {
   let max = Math.max.apply(null, array);
   let min = Math.min.apply(null, array);
+  array.length=0;
   return (max - min) > 0 ? Math.floor((max - min) / 2) : 1;
 }
